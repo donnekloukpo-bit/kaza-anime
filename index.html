@@ -55,7 +55,15 @@ footer{max-width:1120px;margin:auto;padding:20px 16px 35px;color:var(--muted);fo
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 const GENRES=["Tous","Action","Aventure","Isekai","Fantasy","Arts martiaux","Comédie","Romance","Drame","Mystère","Science-fiction","Sport","Surnaturel","Donghua","Tranche de vie"];
-const firebaseConfig={apiKey:"REMPLACE_MOI",authDomain:"REMPLACE_MOI",projectId:"REMPLACE_MOI",appId:"REMPLACE_MOI"};
+const firebaseConfig = {
+  apiKey: "AIzaSyDkGkcp2RDolKFXHr6ZOG2vY51dtNuyTRs",
+  authDomain: "capcut-academy-9b32c.firebaseapp.com",
+  projectId: "capcut-academy-9b32c",
+  storageBucket: "capcut-academy-9b32c.firebasestorage.app",
+  messagingSenderId: "1012471202933",
+  appId: "1:1012471202933:web:e6d070c451dd018139a43c",
+  measurementId: "G-CMNT7V37R2"
+};
 let db=null,auth=null,storage=null,firebaseReady=false,currentUser=null,animes=[],episodes=[],selectedGenre="Tous";
 function init(){const gc=document.getElementById("genreChips");gc.innerHTML=GENRES.map(g=>`<button class="chip ${g===selectedGenre?"active":""}" onclick="pickGenre('${g}')">${g}</button>`).join("");document.getElementById("animeGenre").innerHTML=GENRES.filter(g=>g!=="Tous").map(g=>`<option>${g}</option>`).join("");
 if(firebaseConfig.apiKey==="REMPLACE_MOI")return;try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();storage=firebase.storage();firebaseReady=true;auth.onAuthStateChanged(u=>{currentUser=u;updateAdmin();});db.collection("animes").orderBy("createdAt","desc").onSnapshot(s=>{animes=s.docs.map(d=>({id:d.id,...d.data()}));renderAnime();refreshAnimeSelect();renderAdmin();},console.error);db.collection("episodes").orderBy("createdAt","desc").onSnapshot(s=>{episodes=s.docs.map(d=>({id:d.id,...d.data()}));renderAnime();renderEpisodes();renderAdmin();},console.error);document.getElementById("setupNotice").classList.add("hidden");}catch(e){console.error(e)}}
