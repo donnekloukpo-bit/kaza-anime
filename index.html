@@ -37,9 +37,57 @@ h2{font-size:1.45rem;letter-spacing:-.025em;margin:31px 0 15px}.genres{padding-b
 .tools{padding:12px;background:#13101d;border:1px solid #2f283c;border-radius:16px}.tools input,.tools select{background:#0c0a14;border-color:#393047}.grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:17px}.card{border-radius:17px;background:linear-gradient(180deg,#191525,#12101a);border-color:#30283d;transition:transform .2s,border-color .2s,box-shadow .2s}.card:hover{transform:translateY(-4px);border-color:#7854b0;box-shadow:0 14px 32px #0004}.poster{aspect-ratio:3/4}.cardbody{padding:13px}.card h3{font-size:1rem;line-height:1.35}.card button{border-radius:10px;background:#34234f;border:1px solid #493166}.card button:hover{background:#7847ef}.tag{background:#302142;color:#e6d7ff;border-radius:999px;padding:5px 9px}.panel,.modalbox{background:#14111f;border-color:#352b45}.notice{background:#241b34;border:1px solid #45345f}.episode{background:#171321;border-color:#342a43}footer{max-width:1240px}
 @media(max-width:680px){.top{padding:12px 14px}.brand{width:auto;font-size:1.25rem}nav{margin-left:auto}nav button{padding:9px 12px;font-size:.88rem}main{padding:15px 13px 45px}.spotlight{grid-template-columns:1fr;min-height:0;padding:24px 19px;gap:22px}.spotlight h1{font-size:2.25rem}.spotlight p{font-size:.94rem}.spotlightPosterWrap{width:150px;justify-self:start;margin:2px 0 0 12px}.spotlightPosterWrap:after{font-size:.62rem}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.cardbody{padding:10px}.card h3{font-size:.92rem}.tools{gap:8px}.tools select{min-width:0;flex:1}.tools input{min-width:100%}}
 
+
+/* Affichage adaptatif : grand écran type streaming et navigation mobile */
+.mobileSearch,.mobileBottom{display:none}
+@media(min-width:681px){
+ .spotlight{background:linear-gradient(90deg,rgba(8,7,17,.97) 0%,rgba(8,7,17,.82) 43%,rgba(8,7,17,.1) 100%),url('https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1800&q=85') center 35%/cover;grid-template-columns:minmax(0,1.1fr) minmax(220px,.5fr)}
+ .spotlightPosterWrap{width:min(100%,230px)}
+ .spotlightPosterWrap:after{content:'À DÉCOUVRIR'}
+}
+@media(max-width:680px){
+ body{padding-bottom:78px;background:radial-gradient(ellipse at 50% 0%,#21103e 0,transparent 35%),#070711}
+ header{position:sticky;top:0}
+ .top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 13px}
+ .brand{width:auto!important;font-size:1.2rem;white-space:nowrap}
+ .top nav{display:none}
+ .mobileSearch{display:block;grid-column:1/-1}
+ .mobileSearch input{width:100%;border-radius:999px;padding:10px 14px;background:#171329;border:1px solid #42325e;color:#fff}
+ main{padding:12px 12px 32px}
+ .spotlight{display:flex;flex-direction:column-reverse;align-items:stretch;gap:15px;padding:0;min-height:0;border:1px solid #32264a;border-radius:19px;overflow:hidden;background:#100c1e}
+ .spotlightPosterWrap{width:100%;justify-self:auto;margin:0;transform:none;position:relative;height:250px;overflow:hidden}
+ .spotlightPoster{width:100%;height:100%;aspect-ratio:auto;object-fit:cover;border:0;border-radius:0;box-shadow:none;object-position:center 28%}
+ .spotlightPosterWrap:after{left:12px;top:12px;transform:none}
+ .spotlightText{padding:0 16px 17px}
+ .spotlight h1{font-size:2rem;margin:8px 0}
+ .spotlight p{line-height:1.55;margin:8px 0}
+ .spotlightTags{margin:12px 0 16px}
+ .heroBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .heroBtns button{padding:11px 9px;font-size:.88rem}
+ .spotlightControls{margin-top:15px;justify-content:flex-end}
+ h2{font-size:1.2rem;margin:24px 0 12px}
+ .genres{gap:9px}
+ .chip{padding:8px 12px}
+ .tools{padding:10px;display:flex}
+ .tools input{display:none}
+ .tools select{font-size:.85rem;padding:10px 8px;flex:1;min-width:0}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .card{border-radius:13px}
+ .poster{aspect-ratio:3/4}
+ .cardbody{padding:9px}
+ .card h3{font-size:.9rem}
+ .card .muted{font-size:.76rem}
+ .card button{font-size:.82rem;padding:9px 6px}
+ .mobileBottom{display:flex;position:fixed;z-index:8;bottom:0;left:0;right:0;justify-content:space-around;gap:0;padding:8px 3px max(8px,env(safe-area-inset-bottom));background:rgba(9,8,19,.96);border-top:1px solid #302442;backdrop-filter:blur(14px)}
+ .mobileBottom button{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;padding:4px 1px;background:transparent;border:0;border-radius:9px;font-size:.64rem;color:#c9c2df;white-space:nowrap}
+ .mobileBottom button span{font-size:1.25rem;line-height:1.1;color:#b99aff}
+ .mobileBottom button:active{color:#fff;background:#281941}
+ footer{padding-bottom:25px}
+}
+
 </style></head>
 <body>
-<header><div class="top"><div class="brand">🎌 KaZa <span>Animé</span></div><nav><button class="secondary" onclick="goHome()">Accueil</button><button class="secondary" onclick="showAdmin()">Administration</button></nav></div></header>
+<header><div class="top"><div class="brand">🎌 KaZa <span>Animé</span></div><div class="mobileSearch"><input aria-label="Rechercher un animé" placeholder="Rechercher un animé…" oninput="document.getElementById('search').value=this.value;renderAnime()"></div><nav><button class="secondary" onclick="goHome()">Accueil</button><button class="secondary" onclick="showAdmin()">Administration</button></nav></div></header>
 <main>
 <section id="homeView">
   <section id="spotlight" class="spotlight" aria-label="Animé à découvrir">
@@ -68,7 +116,13 @@ h2{font-size:1.45rem;letter-spacing:-.025em;margin:31px 0 15px}.genres{padding-b
  <h2>Ajouter un épisode</h2><div class="formgrid"><div class="field"><label>Animé</label><select id="episodeAnime"></select></div><div class="field"><label>Saison / épisode</label><input id="episodeNumber" placeholder="Saison 1 — Épisode 1"></div><div class="field full"><label>Titre de l'épisode</label><input id="episodeTitle" placeholder="Titre de l'épisode"></div><div class="field full"><label>Importer une vidéo depuis le téléphone</label><input id="videoFile" type="file" accept="video/*"></div><div class="field full"><label>Ou lien HTTPS de visionnage autorisé</label><input id="watchUrl" type="url" placeholder="https://..."></div></div><div id="uploadProgress" class="notice hidden"></div><div class="actions"><button onclick="addEpisode()">Publier l'épisode</button><button class="secondary" onclick="logout()">Déconnexion</button></div><p id="publishStatus" class="muted"></p>
  <h2>Mes animés</h2><div id="adminAnimeList"></div><h2>Mes épisodes</h2><div id="adminEpisodes"></div></div>
 </section>
-</main><footer>KaZa Animé • Site communautaire non officiel. Les images et vidéos appartiennent à leurs ayants droit. Partage uniquement du contenu autorisé.</footer>
+</main><nav class="mobileBottom" aria-label="Navigation mobile">
+<button onclick="goHome()"><span>⌂</span>Accueil</button>
+<button onclick="document.getElementById('catalogue').scrollIntoView({behavior:'smooth'})"><span>▣</span>Animés</button>
+<button onclick="alert('La liste des favoris sera ajoutée dans une prochaine version.')"><span>☆</span>Favoris</button>
+<button onclick="showAdmin()"><span>♙</span>Administration</button>
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})"><span>⚙</span>Paramètres</button>
+</nav><footer>KaZa Animé • Site communautaire non officiel. Les images et vidéos appartiennent à leurs ayants droit. Partage uniquement du contenu autorisé.</footer>
 <div id="detailModal" class="modal hidden"><div class="modalbox"><div class="modalhead"><h2 id="detailTitle">Animé</h2><button class="secondary" onclick="closeDetail()">Fermer ✕</button></div><img id="detailPoster" src="" alt=""><p id="detailMeta" class="muted"></p><p id="detailDescription"></p><h2>Épisodes disponibles</h2><div id="detailEpisodes"></div><div id="videoPlayerWrap" class="hidden"><h2>Lecture vidéo</h2><video id="siteVideoPlayer" controls playsinline style="width:100%;max-height:60vh;background:#000;border-radius:12px"></video></div></div></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
