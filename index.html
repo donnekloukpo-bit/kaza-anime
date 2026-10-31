@@ -37,7 +37,7 @@ footer{max-width:1120px;margin:auto;padding:20px 16px 35px;color:var(--muted);fo
  <div class="hero" style="min-height:200px"><div class="heroContent"><div class="eyebrow">Espace créateur</div><h1>Administration</h1><p>Ajoute les fiches de tes animés et importe des vidéos autorisées depuis ton téléphone.</p></div></div>
  <div id="setupNotice" class="notice">La base de données n'est pas encore configurée. Le guide inclus dans le ZIP explique la connexion à Firebase.</div>
  <div id="loginPanel" class="panel"><h2>Connexion administrateur</h2><div class="formgrid"><div class="field"><label>E-mail admin</label><input id="email" type="email" placeholder="toi@exemple.com"></div><div class="field"><label>Mot de passe</label><input id="password" type="password" placeholder="Mot de passe"></div></div><div class="actions"><button onclick="login()">Se connecter</button><button class="secondary" onclick="logout()">Déconnexion</button></div><p id="loginStatus" class="muted"></p></div>
- <div id="editorPanel" class="panel hidden"><h2>Ajouter un animé</h2><div class="notice">Les vidéos importées sont envoyées dans Firebase Storage. Cette fonction nécessite une configuration Storage active ; selon ton projet Firebase, l'hébergement des fichiers peut demander un forfait avec facturation. Ne téléverse que des vidéos que tu as le droit de publier.</div>
+ <div id="editorPanel" class="panel hidden"><h2>Ajouter un animé</h2><div class="notice">Les vidéos importées sont envoyées vers Cloudinary. Le forfait gratuit comporte des limites d’utilisation. Ne téléverse que des vidéos que tu as le droit de publier.</div>
  <div class="formgrid">
  <div class="field"><label>Nom de l'animé *</label><input id="animeTitle" placeholder="Ex. Black Clover"></div>
  <div class="field"><label>Origine</label><select id="animeOrigin"><option>Japonais</option><option>Chinois (Donghua)</option><option>Autre</option></select></div>
@@ -54,6 +54,8 @@ footer{max-width:1120px;margin:auto;padding:20px 16px 35px;color:var(--muted);fo
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
+const CLOUDINARY_CLOUD_NAME = "ncnutjai";
+const CLOUDINARY_UPLOAD_PRESET = "kaza_videos";
 const GENRES=["Tous","Action","Aventure","Isekai","Fantasy","Arts martiaux","Comédie","Romance","Drame","Mystère","Science-fiction","Sport","Surnaturel","Donghua","Tranche de vie"];
 const firebaseConfig = {
   apiKey: "AIzaSyDkGkcp2RDolKFXHr6ZOG2vY51dtNuyTRs",
@@ -87,20 +89,31 @@ async function addEpisode(){
  if(!animeId){publishStatus.textContent="Choisis un animé.";return}
  if(!file&&!watchUrl){publishStatus.textContent="Choisis une vidéo ou ajoute un lien HTTPS autorisé.";return}
  const progress=document.getElementById("uploadProgress"); progress.classList.remove("hidden");
- let storagePath="";
+ let cloudinaryPublicId="";
  try{
    if(file){
-     if(!storage)throw new Error("Firebase Storage n'est pas initialisé.");
      if(!file.type.startsWith("video/"))throw new Error("Choisis un fichier vidéo.");
-     if(file.size>500*1024*1024)throw new Error("Fichier trop volumineux (limite de cette interface : 500 Mo).");
-     storagePath="videos/"+currentUser.uid+"/"+Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-     progress.textContent="Envoi de la vidéo : 0 %";
-     const task=storage.ref().child(storagePath).put(file,{contentType:file.type});
-     watchUrl=await new Promise((resolve,reject)=>{task.on("state_changed",snap=>{let pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);progress.textContent="Envoi de la vidéo : "+pct+" %";},reject,async()=>{try{resolve(await task.snapshot.ref.getDownloadURL())}catch(err){reject(err)}})});
+     if(file.size>100*1024*1024)throw new Error("Fichier trop volumineux pour cette interface (limite de sécurité : 100 Mo). Essaie un fichier plus petit.");
+     progress.textContent="Préparation de l’envoi vers Cloudinary…";
+     const formData=new FormData();
+     formData.append("file",file);
+     formData.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+     formData.append("folder","kaza-anime");
+     watchUrl=await new Promise((resolve,reject)=>{
+       const xhr=new XMLHttpRequest();
+       xhr.open("POST","https://api.cloudinary.com/v1_1/"+CLOUDINARY_CLOUD_NAME+"/video/upload");
+       xhr.upload.onprogress=(event)=>{if(event.lengthComputable){progress.textContent="Envoi vers Cloudinary : "+Math.round(event.loaded/event.total*100)+" %"}};
+       xhr.onload=()=>{let result;try{result=JSON.parse(xhr.responseText)}catch(e){reject(new Error("Réponse Cloudinary illisible."));return}
+         if(xhr.status>=200&&xhr.status<300&&result.secure_url){cloudinaryPublicId=result.public_id||"";resolve(result.secure_url)}
+         else{reject(new Error(result.error?.message||"Cloudinary a refusé la vidéo. Vérifie le preset, les limites du compte et la taille du fichier."))}
+       };
+       xhr.onerror=()=>reject(new Error("Connexion à Cloudinary impossible. Vérifie Internet puis réessaie."));
+       xhr.send(formData);
+     });
    }
-   await db.collection("episodes").add({animeId,number,title,watchUrl,storagePath,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:currentUser.uid});
+   await db.collection("episodes").add({animeId,number,title,watchUrl,storagePath:"",cloudinaryPublicId,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:currentUser.uid});
    publishStatus.textContent="Épisode publié !";progress.textContent="Terminé.";episodeNumber.value="";episodeTitle.value="";document.getElementById("watchUrl").value="";document.getElementById("videoFile").value="";
- }catch(e){console.error(e);publishStatus.textContent="Échec : "+(e.code==="storage/unauthorized"?"les règles Firebase Storage refusent l'envoi.":e.message||"vérifie la configuration Storage et les règles.");}
+ }catch(e){console.error(e);publishStatus.textContent="Échec : "+(e.message||"Vérifie la connexion, le preset Cloudinary et les règles Firestore.")}
 }
 function renderAdmin(){if(!currentUser)return;adminAnimeList.innerHTML=animes.map(a=>`<div class="episode"><div><strong>${esc(a.title)}</strong><span class="muted">${esc(a.genre||"")}</span></div><button class="secondary" onclick="deleteItem('animes','${esc(a.id)}')">Supprimer</button></div>`).join("")||'<div class="empty">Aucun animé.</div>';adminEpisodes.innerHTML=episodes.map(e=>`<div class="episode"><div><strong>${esc(animes.find(a=>a.id===e.animeId)?.title||"Animé")} — ${esc(e.number||"Épisode")}</strong><span class="muted">${esc(e.title||"")}</span></div><button class="secondary" onclick="deleteItem('episodes','${esc(e.id)}')">Supprimer</button></div>`).join("")||'<div class="empty">Aucun épisode.</div>'}
 async function deleteItem(col,id){if(!currentUser||!confirm("Supprimer cet élément ?"))return;try{if(col==="episodes"){let ep=episodes.find(x=>x.id===id);if(ep?.storagePath&&storage){try{await storage.ref().child(ep.storagePath).delete()}catch(err){console.warn("Fichier Storage non supprimé :",err)}}}await db.collection(col).doc(id).delete()}catch(e){alert("Suppression impossible. Vérifie les règles Firestore/Storage.")}}
